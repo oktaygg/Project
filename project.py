@@ -99,7 +99,7 @@ class Button:
         self.check_click()
 
     def check_click(self):
-        global Window_now
+        global Window_now, Music, music_button
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
@@ -119,6 +119,17 @@ class Button:
                         Window_now = 'start_menu'
                     elif self.button_text == 'back' and Window_now == 'start_menu':
                         Window_now = 'play_menu'
+                    elif self.button_text == 'settings':
+                        Window_now = 'settings_menu'
+                    elif self.button_text == 'back' and Window_now == 'settings_menu':
+                        Window_now = 'main_menu'
+                    elif self.button_text == 'music on':
+                        self.button_text = 'music off'
+                        Music = False
+                        music_button = Button('music off', 600, 100, (630, 600), 7)
+                    elif self.button_text == 'music off':
+                        music_button = Button('music on', 600, 100, (630, 600), 7)
+                        Music = True
                     print('click')
                     self.pressed = False
         else:
@@ -126,7 +137,7 @@ class Button:
             self.top_color = (139, 0, 0)
 
 
-def drawtittle():
+def draw_tittle():
     font = pygame.font.Font(None, 200)
     text = font.render("Nijia Fight", True, (139, 0, 0))
     text1 = font.render("Nijia Fight", True, (0, 0, 0))
@@ -165,10 +176,15 @@ if __name__ == '__main__':
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
     back_to_play_menu_button = Button('back', 600, 100, (630, 730), 7)
 
+    account_button = Button('account', 600, 100, (630, 470), 7)
+    music_button = Button('music on', 600, 100, (630, 600), 7)
+
     Window_now = 'main_menu'
 
     time_update = 100
     time_escaped = 0
+
+    Music = True
 
 while running:
 
@@ -180,11 +196,12 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    if Window_now == 'main_menu' or Window_now == 'play_menu' or Window_now == 'start_menu':
+    if (Window_now == 'main_menu' or Window_now == 'play_menu' or
+            Window_now == 'start_menu' or Window_now == 'settings_menu'):
         time_escaped += time
 
         all_sprites.draw(screen)
-        drawtittle()
+        draw_tittle()
 
         if time_escaped >= time_update:
             time_escaped = 0
@@ -210,5 +227,10 @@ while running:
         play_solo_button.draw()
         play_duo_button.draw()
         back_to_play_menu_button.draw()
+
+    elif Window_now == 'settings_menu':
+        account_button.draw()
+        music_button.draw()
+        back_to_main_menu_button.draw()
 
     pygame.display.flip()
