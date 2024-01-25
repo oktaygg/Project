@@ -130,11 +130,17 @@ class Button:
                     elif self.button_text == 'music off':
                         music_button = Button('music on', 600, 100, (630, 600), 7)
                         Music = True
+                    elif self.button_text == 'account':
+                        Window_now = 'account_menu'
+                    elif self.button_text == 'back' and Window_now == 'account_menu':
+                        Window_now = 'settings_menu'
                     print('click')
                     self.pressed = False
         else:
             self.dynamic_elecation = self.elevation
             self.top_color = (139, 0, 0)
+            if self.pressed and not(self.top_rect.collidepoint(mouse_pos)):
+                self.pressed = False
 
 
 def draw_tittle():
@@ -170,14 +176,16 @@ if __name__ == '__main__':
 
     start_play_button = Button('start', 600, 100, (630, 470), 7)
     inventory_button = Button('inventory', 600, 100, (630, 600), 7)
-    back_to_main_menu_button = Button('back', 600, 100, (630, 730), 7)
+    back_button = Button('back', 600, 100, (630, 730), 7)
 
     play_solo_button = Button('paly solo', 600, 100, (630, 470), 7)
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
-    back_to_play_menu_button = Button('back', 600, 100, (630, 730), 7)
 
     account_button = Button('account', 600, 100, (630, 470), 7)
     music_button = Button('music on', 600, 100, (630, 600), 7)
+
+    signin_button = Button('sign in', 600, 100, (630, 470), 7)
+    signup_button = Button('sign up', 600, 100, (630, 600), 7)
 
     Window_now = 'main_menu'
 
@@ -197,7 +205,7 @@ while running:
     screen.fill((0, 0, 0))
 
     if (Window_now == 'main_menu' or Window_now == 'play_menu' or
-            Window_now == 'start_menu' or Window_now == 'settings_menu'):
+            Window_now == 'start_menu' or Window_now == 'settings_menu' or Window_now == 'account_menu'):
         time_escaped += time
 
         all_sprites.draw(screen)
@@ -215,22 +223,27 @@ while running:
 
     if Window_now == 'main_menu':
         play_button.draw()
-        exit_button.draw()
         settings_button.draw()
+        exit_button.draw()
 
     elif Window_now == 'play_menu':
         start_play_button.draw()
         inventory_button.draw()
-        back_to_main_menu_button.draw()
+        back_button.draw()
 
     elif Window_now == 'start_menu':
         play_solo_button.draw()
         play_duo_button.draw()
-        back_to_play_menu_button.draw()
+        back_button.draw()
 
     elif Window_now == 'settings_menu':
         account_button.draw()
         music_button.draw()
-        back_to_main_menu_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'account_menu':
+        signin_button.draw()
+        signup_button.draw()
+        back_button.draw()
 
     pygame.display.flip()
