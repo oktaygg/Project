@@ -43,8 +43,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class Button:
-    def __init__(self, text, buttonwidth, buttonheight, pos, elevation):
+    def __init__(self, button_text, buttonwidth, buttonheight, pos, elevation):
         # Core attributes
+        self.button_text = button_text
         self.pressed = False
         self.elevation = elevation
         self.dynamic_elecation = elevation
@@ -58,7 +59,8 @@ class Button:
         self.bottom_rect = pygame.Rect(pos, (buttonwidth, buttonheight))
         self.bottom_color = (0, 0, 0)
         # text
-        self.text_surf = gui_font.render(text, True, (0, 0, 0))
+        self.font = pygame.font.Font(None, 90)
+        self.text_surf = self.font.render(self.button_text, True, (0, 0, 0))
         self.text_rect = self.text_surf.get_rect(center=self.top_rect.center)
 
     def draw(self):
@@ -77,13 +79,15 @@ class Button:
     def check_click(self):
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
-            self.top_color = (139, 0, 0)
+            self.top_color = (200, 0, 0)
             if pygame.mouse.get_pressed()[0]:
                 self.dynamic_elecation = 0
                 self.pressed = True
             else:
                 self.dynamic_elecation = self.elevation
                 if self.pressed:
+                    if self.button_text == 'exit':
+                        exit()
                     print('click')
                     self.pressed = False
         else:
@@ -100,9 +104,6 @@ def drawtittle():
 
 
 if __name__ == '__main__':
-    FPS = 60
-    timenow = 0
-
     pygame.init()
 
     all_sprites = pygame.sprite.Group()
@@ -121,13 +122,18 @@ if __name__ == '__main__':
     text_x = 600
     text_y = 150
 
-    gui_font = pygame.font.Font(None, 30)
-    button1 = Button('Play', 600, 100, (630, 400), 7)
+    play_button = Button('play', 600, 100, (630, 470), 7)
+    settings_button = Button('settings', 600, 100, (630, 600), 7)
+    exit_button = Button('exit', 600, 100, (630, 730), 7)
+
+    Window_now = 'main_menu'
+
+    time_update = 100
+    time_escaped = 0
 
 while running:
 
-    time = clock.tick(60)
-    timenow += time
+    time = clock.tick()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -135,18 +141,22 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    all_sprites.draw(screen)
-    drawtittle()
-    button1.draw()
+    if Window_now == 'main_menu':
+        all_sprites.draw(screen)
+        time_escaped += time
+        drawtittle()
+        play_button.draw()
+        exit_button.draw()
+        settings_button.draw()
 
-    if timenow >= 100:
-        timenow = 0
-        all_sprites.update()
-        if textmoving == 1:
-            text_y += 1
-            textmoving = 0 if text_y > 160 else 1
-        else:
-            text_y -= 1
-            textmoving = 1 if text_y < 150 else 0
+        if time_escaped >= time_update:
+            time_escaped = 0
+            all_sprites.update()
+            if textmoving == 1:
+                text_y += 1
+                textmoving = 0 if text_y > 160 else 1
+            else:
+                text_y -= 1
+                textmoving = 1 if text_y < 150 else 0
 
     pygame.display.flip()
