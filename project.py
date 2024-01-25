@@ -77,6 +77,7 @@ class Button:
         self.check_click()
 
     def check_click(self):
+        global Window_now
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
@@ -88,6 +89,14 @@ class Button:
                 if self.pressed:
                     if self.button_text == 'exit':
                         exit()
+                    elif self.button_text == 'play':
+                        Window_now = 'play_menu'
+                    elif self.button_text == 'back' and Window_now == 'play_menu':
+                        Window_now = 'main_menu'
+                    elif self.button_text == 'start':
+                        Window_now = 'start_menu'
+                    elif self.button_text == 'back' and Window_now == 'start_menu':
+                        Window_now = 'play_menu'
                     print('click')
                     self.pressed = False
         else:
@@ -109,7 +118,7 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
     sprite = pygame.sprite.Sprite()
 
-    pygame.display.set_caption('Недореверси')  # название окна
+    pygame.display.set_caption('Ninja Fight')  # название окна
     size = width, height = 1920, 1080
     screen = pygame.display.set_mode(size)
 
@@ -125,6 +134,14 @@ if __name__ == '__main__':
     play_button = Button('play', 600, 100, (630, 470), 7)
     settings_button = Button('settings', 600, 100, (630, 600), 7)
     exit_button = Button('exit', 600, 100, (630, 730), 7)
+
+    start_play_button = Button('start', 600, 100, (630, 470), 7)
+    inventory_button = Button('inventory', 600, 100, (630, 600), 7)
+    back_to_main_menu_button = Button('back', 600, 100, (630, 730), 7)
+
+    play_solo_button = Button('paly solo', 600, 100, (630, 470), 7)
+    play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
+    back_to_play_menu_button = Button('back', 600, 100, (630, 730), 7)
 
     Window_now = 'main_menu'
 
@@ -142,12 +159,51 @@ while running:
     screen.fill((0, 0, 0))
 
     if Window_now == 'main_menu':
-        all_sprites.draw(screen)
         time_escaped += time
+
+        all_sprites.draw(screen)
         drawtittle()
         play_button.draw()
         exit_button.draw()
         settings_button.draw()
+
+        if time_escaped >= time_update:
+            time_escaped = 0
+            all_sprites.update()
+            if textmoving == 1:
+                text_y += 1
+                textmoving = 0 if text_y > 160 else 1
+            else:
+                text_y -= 1
+                textmoving = 1 if text_y < 150 else 0
+
+    elif Window_now == 'play_menu':
+        time_escaped += time
+
+        all_sprites.draw(screen)
+        drawtittle()
+        start_play_button.draw()
+        inventory_button.draw()
+        back_to_main_menu_button.draw()
+
+        if time_escaped >= time_update:
+            time_escaped = 0
+            all_sprites.update()
+            if textmoving == 1:
+                text_y += 1
+                textmoving = 0 if text_y > 160 else 1
+            else:
+                text_y -= 1
+                textmoving = 1 if text_y < 150 else 0
+
+    elif Window_now == 'start_menu':
+        time_escaped += time
+
+        all_sprites.draw(screen)
+        drawtittle()
+        play_solo_button.draw()
+        play_duo_button.draw()
+        back_to_play_menu_button.draw()
 
         if time_escaped >= time_update:
             time_escaped = 0
