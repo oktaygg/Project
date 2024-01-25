@@ -19,6 +19,28 @@ def load_image(name, colorkey=None):
     return image
 
 
+class BackgroundSprite(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet()
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self):
+        self.rect = pygame.Rect(0, 0, 1920, 1080)
+        for i in range(1, 241):
+            name = 'fon/' + '0' * (4 - len(str(i))) + str(i) + '.jpg'
+            self.image = load_image(name)
+            self.frames.append(self.image)
+
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % 239
+        self.image = self.frames[self.cur_frame]
+
+
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
@@ -29,8 +51,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
+        self.rect = pygame.Rect(0, 0, 1920,
+                                1080)
         for j in range(rows):
             for i in range(columns):
                 frame_location = (self.rect.w * i, self.rect.h * j)
@@ -125,7 +147,8 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     running = True
 
-    fon = AnimatedSprite(load_image("merged_images.png"), 60, 1, 0, 0)
+    # fon = AnimatedSprite(load_image("merged_images.png"), 60, 1, 0, 0)
+    fon = BackgroundSprite(0, 0)
 
     textmoving = 1
     text_x = 600
