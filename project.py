@@ -20,24 +20,24 @@ def load_image(name, colorkey=None):
 
 
 class BackgroundSprite(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, pack_name, count):
         super().__init__(all_sprites)
+        self.pack_name = pack_name
+        self.count = count
         self.frames = []
-        self.cut_sheet()
+        self.download_images()
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
 
-    def cut_sheet(self):
-        self.rect = pygame.Rect(0, 0, 1920, 1080)
-        for i in range(1, 241):
-            name = 'fon/' + '0' * (4 - len(str(i))) + str(i) + '.jpg'
-            self.image = load_image(name)
+    def download_images(self):
+        self.rect = pygame.Rect(0, 0, width, height)
+        for i in range(1, self.count + 1):
+            self.image = load_image(self.pack_name + '/' + '0' * (4 - len(str(i))) + str(i) + '.jpg')
             self.frames.append(self.image)
 
-
     def update(self):
-        self.cur_frame = (self.cur_frame + 1) % 239
+        self.cur_frame = (self.cur_frame + 1) % (self.count - 1)
         self.image = self.frames[self.cur_frame]
 
 
@@ -147,8 +147,7 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     running = True
 
-    # fon = AnimatedSprite(load_image("merged_images.png"), 60, 1, 0, 0)
-    fon = BackgroundSprite(0, 0)
+    fon = BackgroundSprite(0, 0, 'fon', 240)
 
     textmoving = 1
     text_x = 600
@@ -181,61 +180,35 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    if Window_now == 'main_menu':
+    if Window_now == 'main_menu' or Window_now == 'play_menu' or Window_now == 'start_menu':
         time_escaped += time
 
         all_sprites.draw(screen)
         drawtittle()
+
+        if time_escaped >= time_update:
+            time_escaped = 0
+            all_sprites.update()
+            if textmoving == 1:
+                text_y += 1
+                textmoving = 0 if text_y > 160 else 1
+            else:
+                text_y -= 1
+                textmoving = 1 if text_y < 150 else 0
+
+    if Window_now == 'main_menu':
         play_button.draw()
         exit_button.draw()
         settings_button.draw()
 
-        if time_escaped >= time_update:
-            time_escaped = 0
-            all_sprites.update()
-            if textmoving == 1:
-                text_y += 1
-                textmoving = 0 if text_y > 160 else 1
-            else:
-                text_y -= 1
-                textmoving = 1 if text_y < 150 else 0
-
     elif Window_now == 'play_menu':
-        time_escaped += time
-
-        all_sprites.draw(screen)
-        drawtittle()
         start_play_button.draw()
         inventory_button.draw()
         back_to_main_menu_button.draw()
 
-        if time_escaped >= time_update:
-            time_escaped = 0
-            all_sprites.update()
-            if textmoving == 1:
-                text_y += 1
-                textmoving = 0 if text_y > 160 else 1
-            else:
-                text_y -= 1
-                textmoving = 1 if text_y < 150 else 0
-
     elif Window_now == 'start_menu':
-        time_escaped += time
-
-        all_sprites.draw(screen)
-        drawtittle()
         play_solo_button.draw()
         play_duo_button.draw()
         back_to_play_menu_button.draw()
-
-        if time_escaped >= time_update:
-            time_escaped = 0
-            all_sprites.update()
-            if textmoving == 1:
-                text_y += 1
-                textmoving = 0 if text_y > 160 else 1
-            else:
-                text_y -= 1
-                textmoving = 1 if text_y < 150 else 0
 
     pygame.display.flip()
