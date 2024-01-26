@@ -48,12 +48,6 @@ class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, x, y, pack_name, count, sprite_width, sprite_height):
         super().__init__(ninjas_sprites)
         self.sprite_width, self.sprite_height = sprite_width, sprite_height
-        if 'SamuraiLight' in pack_name:
-            self.type = 1
-        elif 'SamuraiHeavy' in pack_name:
-            self.type = 2
-        else:
-            self.type = -1
         self.pack_name = pack_name
         self.count = count
 
@@ -72,8 +66,6 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames[self.animashion_now][self.cur_frame]
         self.rect = self.rect.move(x, y)
-        if self.type == 2:
-            self.image = pygame.transform.flip(self.image, True, False)
 
     def download_images(self):
         self.rect = pygame.Rect(0, 0, self.sprite_width, self.sprite_height)
@@ -86,14 +78,15 @@ class AnimatedSprite(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % (self.count - 1)
         self.image = self.frames[self.animashion_now][self.cur_frame]
-        if self.type == 2:
-            self.image = pygame.transform.flip(self.image, True, False)
 
     def draw(self, scren):
         scren.blit(self.image, self.rect)
 
     def go(self, x, y):
         self.rect = self.rect.move(x, y)
+
+    def revers(self):
+        self.image = pygame.transform.flip(self.image, True, False)
 
 
 class Button:
@@ -186,12 +179,6 @@ def draw_tittle():
     screen.blit(text, (text_x, text_y))
 
 
-def draws(sprite_number, group):
-    for sprite in group:
-        if sprite.type == sprite_number:
-            return sprite
-
-
 def start_game():
     global player1, skin1, player2, skin2, zajim
     player1 = 'oktay'
@@ -199,6 +186,7 @@ def start_game():
     print(skin1)
     player2 = 'AI'
     skin2 = list_of_ninjas[1]
+    skin2.revers()
     zajim = False
 
 
@@ -221,7 +209,8 @@ if __name__ == '__main__':
     list_of_ninjas = []
 
     white_ninja = AnimatedSprite(-200, 570, 'SamuraiLight', 10, 500, 500)
-    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
+    # heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
+    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiLight', 10, 500, 500)
 
     list_of_ninjas.append(white_ninja)
     list_of_ninjas.append(heavy_ninja)
@@ -310,8 +299,8 @@ while running:
         time_escaped += time
 
         sprite_fon.draw(screen)
-        draws(1, ninjas_sprites.sprites()).draw(screen)
-        draws(2, ninjas_sprites.sprites()).draw(screen)
+        skin1.draw(screen)
+        skin2.draw(screen)
 
         if time_escaped >= time_update:
             time_escaped = 0
@@ -330,34 +319,41 @@ while running:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 2
-                skin1.go(-20, 0)
+                skin1.go(-25, 0)
                 # if left arrow key is pressed
             elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < 1180:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 2
-                skin1.go(20, 0)
+                skin1.go(25, 0)
             elif keys[pygame.K_a] and skin1.rect.x > -250:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 1
-                skin1.go(-12, 0)
+                skin1.go(-10, 0)
                 # if left arrow key is pressed
             elif keys[pygame.K_d] and skin1.rect.x < 1180:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 1
-                skin1.go(12, 0)
+                skin1.go(10, 0)
             else:
                 skin1.animashion_now = 0
                 skin1.cur_frame = 0
                 zajim = False
 
+            # 600 570
+            # -200 570
+
             sprite_fon.update()
-            draws(1, ninjas_sprites.sprites()).update()
-            draws(2, ninjas_sprites.sprites()).update()
+            skin1.update()
+            skin2.update()
+            if 4 % 2 == 0:
+                skin2.revers()
+            else:
+                skin1.revers()
 
     pygame.display.flip()
