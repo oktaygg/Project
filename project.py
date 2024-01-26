@@ -212,8 +212,7 @@ if __name__ == '__main__':
     list_of_ninjas = []
 
     white_ninja = AnimatedSprite(-200, 570, 'SamuraiLight', 10, 500, 500)
-    # heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
-    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiLight', 10, 500, 500)
+    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
 
     list_of_ninjas.append(white_ninja)
     list_of_ninjas.append(heavy_ninja)
@@ -311,34 +310,34 @@ while running:
             keys = pygame.key.get_pressed()
 
             # if left arrow key is pressed
-            if (keys[pygame.K_a] and skin1.rect.x > -250 and keys[pygame.K_d] and skin1.rect.x < 1000 or
-                    keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250 and keys[pygame.K_d]
-                    and skin1.rect.x < 1180):
+            if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[pygame.K_d] and skin1.rect.x < end_x_right or
+                    keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[pygame.K_d]
+                    and skin1.rect.x < end_x_right):
                 skin1.animashion_now = 0
                 if zajim:
                     skin1.cur_frame = 0
                 zajim = False
-            elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250:
+            elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 2
                 skin1.go(-25, 0)
                 # if left arrow key is pressed
-            elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < 1180:
+            elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 2
                 skin1.go(25, 0)
-            elif keys[pygame.K_a] and skin1.rect.x > -250:
+            elif keys[pygame.K_a] and skin1.rect.x > end_x_left:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
                 skin1.animashion_now = 1
                 skin1.go(-10, 0)
                 # if left arrow key is pressed
-            elif keys[pygame.K_d] and skin1.rect.x < 1180:
+            elif keys[pygame.K_d] and skin1.rect.x < end_x_right:
                 if not zajim:
                     skin1.cur_frame = 0
                     zajim = True
@@ -362,8 +361,12 @@ while running:
                 skin1.go(-290, 0)
                 skin2.go(290, 0)
             if rever:
+                end_x_left = -250
+                end_x_right = 1180
                 skin2.revers()
             else:
                 skin1.revers()
+                end_x_left = -250 + 290
+                end_x_right = 1180 + 290
 
     pygame.display.flip()
