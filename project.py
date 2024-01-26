@@ -21,7 +21,7 @@ def load_image(name, colorkey=None):
 
 class BackgroundSprite(pygame.sprite.Sprite):
     def __init__(self, x, y, pack_name, count):
-        super().__init__(all_sprites)
+        super().__init__(sprite_fon)
         self.pack_name = pack_name
         self.count = count
         self.frames = []
@@ -40,28 +40,60 @@ class BackgroundSprite(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % (self.count - 1)
         self.image = self.frames[self.cur_frame]
 
+    def draw(self, scren):
+        scren.blit(self.image, self.rect)
+
 
 class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
-        super().__init__(all_sprites)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
+    def __init__(self, x, y, pack_name, count, sprite_width, sprite_height):
+        super().__init__(ninjas_sprites)
+        self.sprite_width, self.sprite_height = sprite_width, sprite_height
+        if 'SamuraiLight' in pack_name:
+            self.type = 1
+        elif 'SamuraiHeavy' in pack_name:
+            self.type = 2
+        else:
+            self.type = -1
+        self.pack_name = pack_name
+        self.count = count
 
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, 1920,
-                                1080)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
+        self.stand = []
+        self.walk = []
+        self.run = []
+        self.hit = []
+        self.die = []
+        self.attack = []
+        self.frames = [self.stand, self.walk, self.run, self.hit, self.die, self.attack]
+        self.list_pack_names = ['Stand', 'Walk', 'Run', 'Hit', 'Die', 'Attack']
+
+        self.animashion_now = 0
+
+        self.download_images()
+        self.cur_frame = 0
+        self.image = self.frames[self.animashion_now][self.cur_frame]
+        self.rect = self.rect.move(x, y)
+        if self.type == 2:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+    def download_images(self):
+        self.rect = pygame.Rect(0, 0, self.sprite_width, self.sprite_height)
+        for j in range(len(self.list_pack_names)):
+            for i in range(self.count):
+                self.image = load_image(self.pack_name + '/' + self.list_pack_names[j] + '/' + str(i) + '.png')
+                self.image = pygame.transform.scale(self.image, (720, 720))
+                self.frames[j].append(self.image)
 
     def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
+        self.cur_frame = (self.cur_frame + 1) % (self.count - 1)
+        self.image = self.frames[self.animashion_now][self.cur_frame]
+        if self.type == 2:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+    def draw(self, scren):
+        scren.blit(self.image, self.rect)
+
+    def go(self, x, y):
+        self.rect = self.rect.move(x, y)
 
 
 class Button:
@@ -134,12 +166,15 @@ class Button:
                         Window_now = 'account_menu'
                     elif self.button_text == 'back' and Window_now == 'account_menu':
                         Window_now = 'settings_menu'
+                    elif self.button_text == 'play solo':
+                        Window_now = 'map_1'
+                        start_game()
                     print('click')
                     self.pressed = False
         else:
             self.dynamic_elecation = self.elevation
             self.top_color = (139, 0, 0)
-            if self.pressed and not(self.top_rect.collidepoint(mouse_pos)):
+            if self.pressed and not (self.top_rect.collidepoint(mouse_pos)):
                 self.pressed = False
 
 
@@ -151,11 +186,28 @@ def draw_tittle():
     screen.blit(text, (text_x, text_y))
 
 
+def draws(sprite_number, group):
+    for sprite in group:
+        if sprite.type == sprite_number:
+            return sprite
+
+
+def start_game():
+    global player1, skin1, player2, skin2, zajim
+    player1 = 'oktay'
+    skin1 = list_of_ninjas[0]
+    print(skin1)
+    player2 = 'AI'
+    skin2 = list_of_ninjas[1]
+    zajim = False
+
+
 if __name__ == '__main__':
     pygame.init()
 
-    all_sprites = pygame.sprite.Group()
+    ninjas_sprites = pygame.sprite.Group()
     sprite = pygame.sprite.Sprite()
+    sprite_fon = pygame.sprite.Group()
 
     pygame.display.set_caption('Ninja Fight')  # название окна
     size = width, height = 1920, 1080
@@ -165,6 +217,14 @@ if __name__ == '__main__':
     running = True
 
     fon = BackgroundSprite(0, 0, 'fon', 240)
+
+    list_of_ninjas = []
+
+    white_ninja = AnimatedSprite(-200, 570, 'SamuraiLight', 10, 500, 500)
+    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
+
+    list_of_ninjas.append(white_ninja)
+    list_of_ninjas.append(heavy_ninja)
 
     textmoving = 1
     text_x = 600
@@ -178,7 +238,7 @@ if __name__ == '__main__':
     inventory_button = Button('inventory', 600, 100, (630, 600), 7)
     back_button = Button('back', 600, 100, (630, 730), 7)
 
-    play_solo_button = Button('paly solo', 600, 100, (630, 470), 7)
+    play_solo_button = Button('play solo', 600, 100, (630, 470), 7)
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
 
     account_button = Button('account', 600, 100, (630, 470), 7)
@@ -191,11 +251,11 @@ if __name__ == '__main__':
 
     time_update = 100
     time_escaped = 0
+    GO = 10
 
     Music = True
 
 while running:
-
     time = clock.tick()
 
     for event in pygame.event.get():
@@ -208,12 +268,12 @@ while running:
             Window_now == 'start_menu' or Window_now == 'settings_menu' or Window_now == 'account_menu'):
         time_escaped += time
 
-        all_sprites.draw(screen)
+        sprite_fon.draw(screen)
         draw_tittle()
 
         if time_escaped >= time_update:
             time_escaped = 0
-            all_sprites.update()
+            sprite_fon.update()
             if textmoving == 1:
                 text_y += 1
                 textmoving = 0 if text_y > 160 else 1
@@ -245,5 +305,59 @@ while running:
         signin_button.draw()
         signup_button.draw()
         back_button.draw()
+
+    elif Window_now == 'map_1':
+        time_escaped += time
+
+        sprite_fon.draw(screen)
+        draws(1, ninjas_sprites.sprites()).draw(screen)
+        draws(2, ninjas_sprites.sprites()).draw(screen)
+
+        if time_escaped >= time_update:
+            time_escaped = 0
+
+            keys = pygame.key.get_pressed()
+
+            # if left arrow key is pressed
+            if (keys[pygame.K_a] and skin1.rect.x > -250 and keys[pygame.K_d] and skin1.rect.x < 1000 or
+                    keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250 and keys[pygame.K_d]
+                    and skin1.rect.x < 1180):
+                skin1.animashion_now = 0
+                skin1.cur_frame = 0
+                zajim = False
+            elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250:
+                if not zajim:
+                    skin1.cur_frame = 0
+                    zajim = True
+                skin1.animashion_now = 2
+                skin1.go(-20, 0)
+                # if left arrow key is pressed
+            elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < 1180:
+                if not zajim:
+                    skin1.cur_frame = 0
+                    zajim = True
+                skin1.animashion_now = 2
+                skin1.go(20, 0)
+            elif keys[pygame.K_a] and skin1.rect.x > -250:
+                if not zajim:
+                    skin1.cur_frame = 0
+                    zajim = True
+                skin1.animashion_now = 1
+                skin1.go(-12, 0)
+                # if left arrow key is pressed
+            elif keys[pygame.K_d] and skin1.rect.x < 1180:
+                if not zajim:
+                    skin1.cur_frame = 0
+                    zajim = True
+                skin1.animashion_now = 1
+                skin1.go(12, 0)
+            else:
+                skin1.animashion_now = 0
+                skin1.cur_frame = 0
+                zajim = False
+
+            sprite_fon.update()
+            draws(1, ninjas_sprites.sprites()).update()
+            draws(2, ninjas_sprites.sprites()).update()
 
     pygame.display.flip()
