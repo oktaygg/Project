@@ -180,14 +180,17 @@ def draw_tittle():
 
 
 def start_game():
-    global player1, skin1, player2, skin2, zajim
+    global player1, skin1, player2, skin2, zajim, rever
     player1 = 'oktay'
     skin1 = list_of_ninjas[0]
-    print(skin1)
     player2 = 'AI'
     skin2 = list_of_ninjas[1]
     skin2.revers()
     zajim = False
+    rever = True
+
+    # -200 570
+    # 90 570
 
 
 if __name__ == '__main__':
@@ -312,7 +315,8 @@ while running:
                     keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250 and keys[pygame.K_d]
                     and skin1.rect.x < 1180):
                 skin1.animashion_now = 0
-                skin1.cur_frame = 0
+                if zajim:
+                    skin1.cur_frame = 0
                 zajim = False
             elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > -250:
                 if not zajim:
@@ -341,17 +345,23 @@ while running:
                 skin1.animashion_now = 1
                 skin1.go(10, 0)
             else:
+                if zajim:
+                    skin1.cur_frame = 0
                 skin1.animashion_now = 0
-                skin1.cur_frame = 0
                 zajim = False
-
-            # 600 570
-            # -200 570
 
             sprite_fon.update()
             skin1.update()
             skin2.update()
-            if 4 % 2 == 0:
+            if rever and skin1.rect.x > skin2.rect.x - 290:
+                rever = False
+                skin1.go(290, 0)
+                skin2.go(-290, 0)
+            elif not rever and skin2.rect.x > skin1.rect.x - 290:
+                rever = True
+                skin1.go(-290, 0)
+                skin2.go(290, 0)
+            if rever:
                 skin2.revers()
             else:
                 skin1.revers()
