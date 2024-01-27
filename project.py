@@ -76,7 +76,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
                 self.frames[j].append(self.image)
 
     def update(self):
-        self.cur_frame = (self.cur_frame + 1) % (self.count - 1)
+        self.cur_frame = (self.cur_frame + 1) % self.count
         self.image = self.frames[self.animashion_now][self.cur_frame]
 
     def draw(self, scren):
@@ -160,7 +160,7 @@ class Button:
                     elif self.button_text == 'back' and Window_now == 'account_menu':
                         Window_now = 'settings_menu'
                     elif self.button_text == 'play solo':
-                        Window_now = 'map_1'
+                        Window_now = 'play solo'
                         start_game()
                     print('click')
                     self.pressed = False
@@ -180,7 +180,9 @@ def draw_tittle():
 
 
 def start_game():
-    global player1, skin1, player2, skin2, zajim, rever
+    global player1, skin1, player2, skin2, zajim, rever,\
+        fight, health_1, health_2, health_background_1, health_background_2,\
+        text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y
     player1 = 'oktay'
     skin1 = list_of_ninjas[0]
     player2 = 'AI'
@@ -188,9 +190,22 @@ def start_game():
     skin2.revers()
     zajim = False
     rever = True
+    fight = False
 
-    # -200 570
-    # 90 570
+    time_ms = 0
+
+    round_time = 60
+
+    health_background_1 = [[200, 140], [800, 140], [840, 180], [240, 180]]
+    health_background_2 = [[1010, 140], [1710, 140], [1670, 180], [970, 180]]
+    health_1 = [[213, 145], [798, 145], [828, 175], [243, 175]]
+    health_2 = [[1013, 145], [1698, 145], [1668, 175], [983, 175]]
+
+    text_time_x = 855
+    text_time_y = 120
+    font_text_time = pygame.font.Font(None, 130)
+    text_time = font_text_time.render(str(round_time), True, (255, 0, 0))
+    text_time_shadow = font_text_time.render(str(round_time), True, (0, 0, 0))
 
 
 if __name__ == '__main__':
@@ -211,8 +226,8 @@ if __name__ == '__main__':
 
     list_of_ninjas = []
 
-    white_ninja = AnimatedSprite(-200, 570, 'SamuraiLight', 10, 500, 500)
-    heavy_ninja = AnimatedSprite(600, 570, 'SamuraiHeavy', 10, 500, 500)
+    white_ninja = AnimatedSprite(0, 570, 'SamuraiLight', 10, 500, 500)
+    heavy_ninja = AnimatedSprite(1180, 570, 'SamuraiHeavy', 10, 500, 500)
 
     list_of_ninjas.append(white_ninja)
     list_of_ninjas.append(heavy_ninja)
@@ -297,57 +312,95 @@ while running:
         signup_button.draw()
         back_button.draw()
 
-    elif Window_now == 'map_1':
+    elif Window_now == 'play solo':
         time_escaped += time
 
         sprite_fon.draw(screen)
-        skin1.draw(screen)
+
         skin2.draw(screen)
+        skin1.draw(screen)
+
+        screen.blit(text_time_shadow, (text_time_x - 3, text_time_y))
+        screen.blit(text_time_shadow, (text_time_x - 3, text_time_y + 3))
+        screen.blit(text_time_shadow, (text_time_x - 3, text_time_y - 3))
+        screen.blit(text_time_shadow, (text_time_x, text_time_y - 3))
+        screen.blit(text_time_shadow, (text_time_x + 3, text_time_y))
+        screen.blit(text_time_shadow, (text_time_x + 3, text_time_y - 3))
+        screen.blit(text_time_shadow, (text_time_x + 3, text_time_y + 3))
+        screen.blit(text_time_shadow, (text_time_x, text_time_y + 3))
+        screen.blit(text_time, (text_time_x, text_time_y))
+
+        pygame.draw.polygon(screen, (pygame.Color('black')), health_background_1)
+        pygame.draw.polygon(screen, (pygame.Color('black')), health_background_2)
+        pygame.draw.polygon(screen, (pygame.Color('red')), health_1)
+        pygame.draw.polygon(screen, (pygame.Color('red')), health_2)
 
         if time_escaped >= time_update:
             time_escaped = 0
 
+            time_ms += 1
+            if time_ms == 10:
+                round_time -= 1
+                if round_time == 0:
+                    Window_now = 'start_menu'
+                elif round_time < 10:
+                    text_time_x = 890
+                time_ms = 0
+                text_time = font_text_time.render(str(round_time), True, (255, 0, 0))
+                text_time_shadow = font_text_time.render(str(round_time), True, (0, 0, 0))
+
             keys = pygame.key.get_pressed()
 
-            # if left arrow key is pressed
-            if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[pygame.K_d] and skin1.rect.x < end_x_right or
-                    keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[pygame.K_d]
-                    and skin1.rect.x < end_x_right):
-                skin1.animashion_now = 0
-                if zajim:
-                    skin1.cur_frame = 0
-                zajim = False
-            elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left:
-                if not zajim:
-                    skin1.cur_frame = 0
-                    zajim = True
-                skin1.animashion_now = 2
-                skin1.go(-25, 0)
-                # if left arrow key is pressed
-            elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right:
-                if not zajim:
-                    skin1.cur_frame = 0
-                    zajim = True
-                skin1.animashion_now = 2
-                skin1.go(25, 0)
-            elif keys[pygame.K_a] and skin1.rect.x > end_x_left:
-                if not zajim:
-                    skin1.cur_frame = 0
-                    zajim = True
-                skin1.animashion_now = 1
-                skin1.go(-10, 0)
-                # if left arrow key is pressed
-            elif keys[pygame.K_d] and skin1.rect.x < end_x_right:
-                if not zajim:
-                    skin1.cur_frame = 0
-                    zajim = True
-                skin1.animashion_now = 1
-                skin1.go(10, 0)
+            if keys[pygame.K_h] or fight:
+                if not fight:
+                    skin1.cur_frame = -1
+                    skin1.animashion_now = 5
+                    fight = True
+                if skin1.cur_frame == 4:
+                    if rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500:
+                        print('ataka1')
+                    elif not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500:
+                        print('ataka2')
+                if skin1.cur_frame == 8:
+                    fight = False
             else:
-                if zajim:
-                    skin1.cur_frame = 0
-                skin1.animashion_now = 0
-                zajim = False
+                if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[
+                    pygame.K_d] and skin1.rect.x < end_x_right or
+                        keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[pygame.K_d]
+                        and skin1.rect.x < end_x_right):
+                    skin1.animashion_now = 0
+                    if zajim:
+                        skin1.cur_frame = 0
+                    zajim = False
+                elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left:
+                    if not zajim:
+                        skin1.cur_frame = 0
+                        zajim = True
+                    skin1.animashion_now = 2
+                    skin1.go(-25, 0)
+                elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right:
+                    if not zajim:
+                        skin1.cur_frame = 0
+                        zajim = True
+                    skin1.animashion_now = 2
+                    skin1.go(25, 0)
+                elif keys[pygame.K_a] and skin1.rect.x > end_x_left:
+                    if not zajim:
+                        skin1.cur_frame = 0
+                        zajim = True
+                    skin1.animashion_now = 1
+                    skin1.go(-10, 0)
+                elif keys[pygame.K_d] and skin1.rect.x < end_x_right:
+                    if not zajim:
+                        skin1.cur_frame = 0
+                        zajim = True
+                    skin1.animashion_now = 1
+                    skin1.go(10, 0)
+                else:
+                    if zajim:
+                        skin1.cur_frame = 0
+                    skin1.animashion_now = 0
+                    zajim = False
 
             sprite_fon.update()
             skin1.update()
