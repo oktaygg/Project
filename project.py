@@ -163,6 +163,18 @@ class Button:
                         start_game('play duo')
                     elif self.button_text == 'back' and Window_now == 'win_menu':
                         Window_now = 'start_menu'
+                    elif self.button_text == 'inventory':
+                        Window_now = 'inventory_menu'
+                    elif self.button_text == 'back' and Window_now == 'inventory_menu':
+                        Window_now = 'play_menu'
+                    elif self.button_text == 'player 1' and Window_now == 'inventory_menu':
+                        Window_now = 'player_1_inventory'
+                    elif self.button_text == 'back' and Window_now == 'player_1_inventory':
+                        Window_now = 'inventory_menu'
+                    elif self.button_text == 'player 2' and Window_now == 'inventory_menu':
+                        Window_now = 'player_2_inventory'
+                    elif self.button_text == 'back' and Window_now == 'player_2_inventory':
+                        Window_now = 'inventory_menu'
                     self.pressed = False
         else:
             self.dynamic_election = self.elevation
@@ -198,7 +210,7 @@ def start_game(button_game_name):
         win_animation, text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, \
         text_player_1_y, text_player_2_x, text_player_2_y, clamp_player_1, clamp_player_2, players, \
         end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2
-    player1 = 'oktay'
+    player1 = 'Player 1'
     skin1 = list_of_ninjas[0]
     skin2 = list_of_ninjas[1]
     skin2.revers()
@@ -206,7 +218,7 @@ def start_game(button_game_name):
         player2 = 'AI'
         players = 1
     else:
-        player2 = 'hast1k'
+        player2 = 'Player 2'
         players = 2
 
     end_x_left_player_1 = -250
@@ -296,8 +308,16 @@ if __name__ == '__main__':
     account_button = Button('account', 600, 100, (630, 470), 7)
     music_button = Button('music on', 600, 100, (630, 600), 7)
 
-    signin_button = Button('sign in', 600, 100, (630, 470), 7)
-    signup_button = Button('sign up', 600, 100, (630, 600), 7)
+    signin_button = Button('player 1', 600, 100, (630, 470), 7)
+    signup_button = Button('player 2', 600, 100, (630, 600), 7)
+
+    player_1_button = Button('player 1', 600, 100, (630, 470), 7)
+    player_2_button = Button('player 2', 600, 100, (630, 600), 7)
+
+    player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
+    player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
+    player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
+
 
     Window_now = 'main_menu'
 
@@ -355,6 +375,20 @@ while running:
     elif Window_now == 'account_menu':
         signin_button.draw()
         signup_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'inventory_menu':
+        player_1_button.draw()
+        player_2_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'player_1_inventory':
+        player_skin_1_button.draw()
+        player_skin_2_button.draw()
+        player_skin_3_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'player_2_inventory':
         back_button.draw()
 
     elif Window_now == 'win_menu':
