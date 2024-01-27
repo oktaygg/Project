@@ -90,15 +90,16 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class Button:
-    def __init__(self, button_text, button_width, button_height, pos, elevation):
+    def __init__(self, button_text, button_width, button_height, pos, elevation, color=(139, 0, 0)):
         self.button_text = button_text
         self.pressed = False
+        self.color = color
         self.elevation = elevation
         self.dynamic_election = elevation
         self.original_y_pos = pos[1]
 
         self.top_rect = pygame.Rect(pos, (button_width, button_height))
-        self.top_color = (139, 0, 0)
+        self.top_color = self.color
 
         self.bottom_rect = pygame.Rect(pos, (button_width, button_height))
         self.bottom_color = (0, 0, 0)
@@ -120,7 +121,8 @@ class Button:
         self.check_click()
 
     def check_click(self):
-        global Window_now, Music, music_button
+        global Window_now, Music, music_button, skin1, skin2, \
+            player_skin_1_button, player_skin_2_button, player_skin_3_button
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
@@ -169,16 +171,32 @@ class Button:
                         Window_now = 'play_menu'
                     elif self.button_text == 'player 1' and Window_now == 'inventory_menu':
                         Window_now = 'player_1_inventory'
+                        player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
+                        player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
+                        player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
                     elif self.button_text == 'back' and Window_now == 'player_1_inventory':
                         Window_now = 'inventory_menu'
                     elif self.button_text == 'player 2' and Window_now == 'inventory_menu':
                         Window_now = 'player_2_inventory'
+                        player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
+                        player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
+                        player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
                     elif self.button_text == 'back' and Window_now == 'player_2_inventory':
                         Window_now = 'inventory_menu'
+                    elif (self.button_text == '1' or '2' or '3') and Window_now == 'player_1_inventory':
+                        skin1 = list_of_ninjas[int(self.button_text) - 1]
+                        player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
+                        player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
+                        player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
+                    elif (self.button_text == '1' or '2' or '3') and Window_now == 'player_2_inventory':
+                        skin2 = list_of_ninjas[int(self.button_text) - 1]
+                        player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
+                        player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
+                        player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
                     self.pressed = False
         else:
             self.dynamic_election = self.elevation
-            self.top_color = (139, 0, 0)
+            self.top_color = self.color
             if self.pressed and not (self.top_rect.collidepoint(mouse_pos)):
                 self.pressed = False
 
@@ -211,8 +229,6 @@ def start_game(button_game_name):
         text_player_1_y, text_player_2_x, text_player_2_y, clamp_player_1, clamp_player_2, players, \
         end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2
     player1 = 'Player 1'
-    skin1 = list_of_ninjas[0]
-    skin2 = list_of_ninjas[1]
     skin2.revers()
     if button_game_name == 'play solo':
         player2 = 'AI'
@@ -290,9 +306,24 @@ if __name__ == '__main__':
 
     list_of_ninjas = [white_ninja, heavy_ninja, ninja_ninja]
 
+    skin1 = list_of_ninjas[0]
+    skin2 = list_of_ninjas[0]
+
     text_moving = 1
     text_main_x = 600
     text_main_y = 150
+
+    player_skin_1 = load_image('SamuraiLight/Stand/0.png')
+    player_skin_1 = pygame.transform.scale(player_skin_1, (400, 400))
+    player_skin_1_rect = pygame.Rect(450, 440, 250, 250)
+
+    player_skin_2 = load_image('SamuraiHeavy/Stand/0.png')
+    player_skin_2 = pygame.transform.scale(player_skin_2, (400, 400))
+    player_skin_2_rect = pygame.Rect(645, 430, 250, 250)
+
+    player_skin_3 = load_image('Ninja/Stand/0.png')
+    player_skin_3 = pygame.transform.scale(player_skin_3, (400, 400))
+    player_skin_3_rect = pygame.Rect(840, 435, 250, 250)
 
     play_button = Button('play', 600, 100, (630, 470), 7)
     settings_button = Button('settings', 600, 100, (630, 600), 7)
@@ -317,7 +348,6 @@ if __name__ == '__main__':
     player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
     player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
     player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
-
 
     Window_now = 'main_menu'
 
@@ -383,12 +413,38 @@ while running:
         back_button.draw()
 
     elif Window_now == 'player_1_inventory':
+        for i in range(len(list_of_ninjas)):
+            if skin1 == list_of_ninjas[i]:
+                if i == 0:
+                    player_skin_1_button = Button('1', 190, 230, (630, 470), 7, (200, 100, 0))
+                elif i == 1:
+                    player_skin_2_button = Button('2', 190, 230, (835, 470), 7, (200, 100, 0))
+                elif i == 2:
+                    player_skin_3_button = Button('3', 190, 230, (1040, 470), 7, (200, 100, 0))
         player_skin_1_button.draw()
         player_skin_2_button.draw()
         player_skin_3_button.draw()
-        back_button.draw()
 
+        screen.blit(player_skin_1, player_skin_1_rect)
+        screen.blit(player_skin_2, player_skin_2_rect)
+        screen.blit(player_skin_3, player_skin_3_rect)
+        back_button.draw()
     elif Window_now == 'player_2_inventory':
+        for i in range(len(list_of_ninjas)):
+            if skin2 == list_of_ninjas[i]:
+                if i == 0:
+                    player_skin_1_button = Button('1', 190, 230, (630, 470), 7, (200, 100, 0))
+                elif i == 1:
+                    player_skin_2_button = Button('2', 190, 230, (835, 470), 7, (200, 100, 0))
+                elif i == 2:
+                    player_skin_3_button = Button('3', 190, 230, (1040, 470), 7, (200, 100, 0))
+        player_skin_1_button.draw()
+        player_skin_2_button.draw()
+        player_skin_3_button.draw()
+
+        screen.blit(player_skin_1, player_skin_1_rect)
+        screen.blit(player_skin_2, player_skin_2_rect)
+        screen.blit(player_skin_3, player_skin_3_rect)
         back_button.draw()
 
     elif Window_now == 'win_menu':
