@@ -153,7 +153,7 @@ class Button:
                     elif self.button_text == 'music off':
                         music_button = Button('music on', 600, 100, (630, 600), 7)
                         Music = True
-                    elif self.button_text == 'account':
+                    elif self.button_text == 'edit name':
                         Window_now = 'account_menu'
                     elif self.button_text == 'back' and Window_now == 'account_menu':
                         Window_now = 'settings_menu'
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     list_of_ninjas = [white_ninja, heavy_ninja, ninja_ninja]
 
     skin1 = list_of_ninjas[0]
-    skin2 = list_of_ninjas[0]
+    skin2 = list_of_ninjas[1]
 
     text_moving = 1
     text_main_x = 600
@@ -336,7 +336,7 @@ if __name__ == '__main__':
     play_solo_button = Button('play solo', 600, 100, (630, 470), 7)
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
 
-    account_button = Button('account', 600, 100, (630, 470), 7)
+    account_button = Button('edit name', 600, 100, (630, 470), 7)
     music_button = Button('music on', 600, 100, (630, 600), 7)
 
     signin_button = Button('player 1', 600, 100, (630, 470), 7)
@@ -414,7 +414,7 @@ while running:
 
     elif Window_now == 'player_1_inventory':
         for i in range(len(list_of_ninjas)):
-            if skin1 == list_of_ninjas[i]:
+            if skin1 == list_of_ninjas[i] or skin2 == list_of_ninjas[i]:
                 if i == 0:
                     player_skin_1_button = Button('1', 190, 230, (630, 470), 7, (200, 100, 0))
                 elif i == 1:
@@ -431,7 +431,7 @@ while running:
         back_button.draw()
     elif Window_now == 'player_2_inventory':
         for i in range(len(list_of_ninjas)):
-            if skin2 == list_of_ninjas[i]:
+            if skin2 == list_of_ninjas[i] or skin1 == list_of_ninjas[i]:
                 if i == 0:
                     player_skin_1_button = Button('1', 190, 230, (630, 470), 7, (200, 100, 0))
                 elif i == 1:
