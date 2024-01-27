@@ -162,6 +162,8 @@ class Button:
                     elif self.button_text == 'play solo':
                         Window_now = 'play solo'
                         start_game()
+                    elif self.button_text == 'back' and Window_now == 'win_menu':
+                        Window_now = 'start_menu'
                     print('click')
                     self.pressed = False
         else:
@@ -196,12 +198,15 @@ def start_game():
         fight_player_1, fight_player_2, health_1, health_2, health_background_1, health_background_2, \
         text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, win_animation, \
         text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, text_player_1_y, \
-        text_player_2_x, text_player_2_y, zajim_player_1, zajim_player_2
+        text_player_2_x, text_player_2_y, zajim_player_1, zajim_player_2, end_x_left, end_x_right
     player1 = 'oktay'
     skin1 = list_of_ninjas[0]
     player2 = 'AI'
     skin2 = list_of_ninjas[1]
     skin2.revers()
+
+    end_x_left = -250
+    end_x_right = 1180
 
     zajim_player_1 = False
     zajim_player_2 = False
@@ -213,7 +218,7 @@ def start_game():
 
     time_ms = 0
 
-    round_time = 99
+    round_time = 60
 
     skin1.cur_frame = -1
     skin2.cur_frame = -1
@@ -305,7 +310,7 @@ while running:
     screen.fill((0, 0, 0))
 
     if (Window_now == 'main_menu' or Window_now == 'play_menu' or
-            Window_now == 'start_menu' or Window_now == 'settings_menu' or Window_now == 'account_menu'):
+            Window_now == 'start_menu' or Window_now == 'settings_menu' or Window_now == 'account_menu', 'win_menu'):
         time_escaped += time
 
         sprite_fon.draw(screen)
@@ -346,6 +351,9 @@ while running:
         signup_button.draw()
         back_button.draw()
 
+    elif Window_now == 'win_menu':
+        back_button.draw()
+
     elif Window_now == 'play solo':
         time_escaped += time
 
@@ -367,16 +375,16 @@ while running:
             time_escaped = 0
             if win == 1:
                 if skin2.cur_frame == 8:
-                    Window_now = 'start_menu'
+                    Window_now = 'win_menu'
             elif win == 2:
                 if skin1.cur_frame == 8:
-                    Window_now = 'start_menu'
+                    Window_now = 'win_menu'
             else:
                 time_ms += 1
                 if time_ms == 10:
                     round_time -= 1
                     if round_time == 0:
-                        Window_now = 'start_menu'
+                        Window_now = 'win_menu'
                     elif round_time < 10:
                         text_time_x = 940
                     time_ms = 0
@@ -413,8 +421,8 @@ while running:
                     if win == -1:
                         if zajim_player_2:
                             skin1.cur_frame = -1
-                        skin2.animashion_now = 1
-                        zajim_player_2 = False
+                            skin2.animashion_now = 1
+                            zajim_player_2 = False
                         if rever:
                             skin2.rect.x -= 15
                         else:
@@ -445,8 +453,7 @@ while running:
                     if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[
                         pygame.K_d] and skin1.rect.x < end_x_right or
                             keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[
-                                pygame.K_d]
-                            and skin1.rect.x < end_x_right):
+                                pygame.K_d] and skin1.rect.x < end_x_right):
                         skin1.animashion_now = 0
                         if zajim_player_1:
                             skin1.cur_frame = -1
