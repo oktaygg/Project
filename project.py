@@ -187,25 +187,27 @@ def draw_tittle():
     font = pygame.font.Font(None, 200)
     text = font.render("Nijia Fight", True, (139, 0, 0))
     text1 = font.render("Nijia Fight", True, (0, 0, 0))
-    screen.blit(text1, (text_x + 7, text_y + 7))
-    screen.blit(text, (text_x, text_y))
+    screen.blit(text1, (text_main_x + 7, text_main_y + 7))
+    screen.blit(text, (text_main_x, text_main_y))
 
 
 def start_game():
-    global player1, skin1, player2, skin2, zajim, rever, \
-        fight, health_1, health_2, health_background_1, health_background_2, \
+    global player1, skin1, player2, skin2, rever, \
+        fight_player_1, fight_player_2, health_1, health_2, health_background_1, health_background_2, \
         text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, win_animation, \
-        text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, text_player_1_y,\
-        text_player_2_x, text_player_2_y
+        text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, text_player_1_y, \
+        text_player_2_x, text_player_2_y, zajim_player_1, zajim_player_2
     player1 = 'oktay'
     skin1 = list_of_ninjas[0]
     player2 = 'AI'
     skin2 = list_of_ninjas[1]
     skin2.revers()
 
-    zajim = False
+    zajim_player_1 = False
+    zajim_player_2 = False
     rever = True
-    fight = False
+    fight_player_1 = False
+    fight_player_2 = False
     win = -1
     win_animation = False
 
@@ -265,8 +267,8 @@ if __name__ == '__main__':
     list_of_ninjas = [white_ninja, heavy_ninja, ninja_ninja]
 
     text_moving = 1
-    text_x = 600
-    text_y = 150
+    text_main_x = 600
+    text_main_y = 150
 
     play_button = Button('play', 600, 100, (630, 470), 7)
     settings_button = Button('settings', 600, 100, (630, 600), 7)
@@ -313,11 +315,11 @@ while running:
             time_escaped = 0
             sprite_fon.update()
             if text_moving == 1:
-                text_y += 1
-                text_moving = 0 if text_y > 160 else 1
+                text_main_y += 1
+                text_moving = 0 if text_main_y > 160 else 1
             else:
-                text_y -= 1
-                text_moving = 1 if text_y < 150 else 0
+                text_main_y -= 1
+                text_moving = 1 if text_main_y < 150 else 0
 
     if Window_now == 'main_menu':
         play_button.draw()
@@ -383,67 +385,101 @@ while running:
 
             keys = pygame.key.get_pressed()
 
-            if keys[pygame.K_h] or fight:
-                if not fight:
-                    skin1.cur_frame = -1
-                    skin1.animashion_now = 5
-                    fight = True
-                if skin1.cur_frame == 4:
-                    if rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500:
-                        health_2 = [health_2[0],
-                                    [health_2[1][0] - 127, health_2[1][1]],
-                                    [health_2[2][0] - 127, health_2[2][1]], health_2[3]]
-                    elif not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500:
-                        health_2 = [health_2[0],
-                                    [health_2[1][0] - 127, health_2[1][1]],
-                                    [health_2[2][0] - 127, health_2[2][1]], health_2[3]]
-                    if health_2[1] <= health_2[0]:
-                        health_2 = [[0, 0], [0, 0], [0, 0], [0, 0]]
-                        win = 1
-                        if not win_animation:
-                            skin2.cur_frame = 0
-                            skin2.animashion_now = 4
-                            win_animation = True
-                if skin1.cur_frame == 8:
-                    fight = False
-            else:
-                if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[
-                    pygame.K_d] and skin1.rect.x < end_x_right or
-                        keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[pygame.K_d]
-                        and skin1.rect.x < end_x_right):
-                    skin1.animashion_now = 0
-                    if zajim:
-                        skin1.cur_frame = -1
-                    zajim = False
-                elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left:
-                    if not zajim:
-                        skin1.cur_frame = -1
-                        zajim = True
-                    skin1.animashion_now = 2
-                    skin1.go(-25, 0)
-                elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right:
-                    if not zajim:
-                        skin1.cur_frame = -1
-                        zajim = True
-                    skin1.animashion_now = 2
-                    skin1.go(25, 0)
-                elif keys[pygame.K_a] and skin1.rect.x > end_x_left:
-                    if not zajim:
-                        skin1.cur_frame = -1
-                        zajim = True
-                    skin1.animashion_now = 1
-                    skin1.go(-10, 0)
-                elif keys[pygame.K_d] and skin1.rect.x < end_x_right:
-                    if not zajim:
-                        skin1.cur_frame = -1
-                        zajim = True
-                    skin1.animashion_now = 1
-                    skin1.go(10, 0)
+            if win != 1:
+                if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or fight_player_2 or
+                        not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                    if not fight_player_2:
+                        skin2.cur_frame = -1
+                        skin2.animashion_now = 5
+                        fight_player_2 = True
+                        zajim_player_2 = True
+                    if skin2.cur_frame == 4:
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                            health_1 = [health_1[0],
+                                        [health_1[1][0] - 127, health_1[1][1]],
+                                        [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
+                        if health_1[1] <= health_1[0]:
+                            health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+                            win = 2
+                            if not win_animation:
+                                skin1.cur_frame = 0
+                                skin2.animashion_now = 0
+                                skin1.animashion_now = 4
+                                win_animation = True
+                    if skin1.cur_frame == 8:
+                        fight_player_2 = False
                 else:
-                    if zajim:
+                    if win == -1:
+                        if zajim_player_2:
+                            skin1.cur_frame = -1
+                        skin2.animashion_now = 1
+                        zajim_player_2 = False
+                        if rever:
+                            skin2.rect.x -= 15
+                        else:
+                            skin2.rect.x += 17
+
+            if win != 2:
+                if keys[pygame.K_h] or fight_player_1:
+                    if not fight_player_1:
                         skin1.cur_frame = -1
-                    skin1.animashion_now = 0
-                    zajim = False
+                        skin1.animashion_now = 5
+                        fight_player_1 = True
+                    if skin1.cur_frame == 4:
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500 or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500):
+                            health_2 = [health_2[0],
+                                        [health_2[1][0] - 127, health_2[1][1]],
+                                        [health_2[2][0] - 127, health_2[2][1]], health_2[3]]
+                        if health_2[1] <= health_2[0]:
+                            health_2 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+                            win = 1
+                            if not win_animation:
+                                skin2.cur_frame = 0
+                                skin2.animashion_now = 4
+                                win_animation = True
+                    if skin1.cur_frame == 8:
+                        fight_player_1 = False
+                else:
+                    if (keys[pygame.K_a] and skin1.rect.x > end_x_left and keys[
+                        pygame.K_d] and skin1.rect.x < end_x_right or
+                            keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left and keys[
+                                pygame.K_d]
+                            and skin1.rect.x < end_x_right):
+                        skin1.animashion_now = 0
+                        if zajim_player_1:
+                            skin1.cur_frame = -1
+                        zajim_player_1 = False
+                    elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left:
+                        if not zajim_player_1:
+                            skin1.cur_frame = -1
+                            zajim_player_1 = True
+                        skin1.animashion_now = 2
+                        skin1.go(-25, 0)
+                    elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right:
+                        if not zajim_player_1:
+                            skin1.cur_frame = -1
+                            zajim_player_1 = True
+                        skin1.animashion_now = 2
+                        skin1.go(25, 0)
+                    elif keys[pygame.K_a] and skin1.rect.x > end_x_left:
+                        if not zajim_player_1:
+                            skin1.cur_frame = -1
+                            zajim_player_1 = True
+                        skin1.animashion_now = 1
+                        skin1.go(-10, 0)
+                    elif keys[pygame.K_d] and skin1.rect.x < end_x_right:
+                        if not zajim_player_1:
+                            skin1.cur_frame = -1
+                            zajim_player_1 = True
+                        skin1.animashion_now = 1
+                        skin1.go(10, 0)
+                    else:
+                        if zajim_player_1:
+                            skin1.cur_frame = -1
+                        skin1.animashion_now = 0
+                        zajim_player_1 = False
 
             sprite_fon.update()
             skin1.update()
