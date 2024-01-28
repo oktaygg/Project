@@ -122,7 +122,8 @@ class Button:
 
     def check_click(self):
         global Window_now, Music, music_button, skin1, skin2, \
-            player_skin_1_button, player_skin_2_button, player_skin_3_button
+            player_skin_1_button, player_skin_2_button, player_skin_3_button, \
+            color_input_box, active_input, text_input, player1, player2
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
@@ -154,8 +155,8 @@ class Button:
                         music_button = Button('music on', 600, 100, (630, 600), 7)
                         Music = True
                     elif self.button_text == 'edit name':
-                        Window_now = 'account_menu'
-                    elif self.button_text == 'back' and Window_now == 'account_menu':
+                        Window_now = 'edit_name_menu'
+                    elif self.button_text == 'back' and Window_now == 'edit_name_menu':
                         Window_now = 'settings_menu'
                     elif self.button_text == 'play solo':
                         Window_now = 'play_game'
@@ -193,6 +194,28 @@ class Button:
                         player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
                         player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
                         player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
+                    elif self.button_text == 'player 1' and Window_now == 'edit_name_menu':
+                        Window_now = 'edit_name_player_1_menu'
+                        color_input_box = (139, 0, 0)
+                        active_input = False
+                        text_input = player1
+                    elif self.button_text == 'edit' and Window_now == 'edit_name_player_1_menu':
+                        if text_input != '':
+                            player1 = text_input
+                        active_input = False
+                    elif self.button_text == 'back' and Window_now == 'edit_name_player_1_menu':
+                        Window_now = 'edit_name_menu'
+                    elif self.button_text == 'player 2' and Window_now == 'edit_name_menu':
+                        Window_now = 'edit_name_player_2_menu'
+                        color_input_box = (139, 0, 0)
+                        active_input = False
+                        text_input = player2
+                    elif self.button_text == 'edit' and Window_now == 'edit_name_player_2_menu':
+                        if text_input != '':
+                            player2 = text_input
+                        active_input = False
+                    elif self.button_text == 'back' and Window_now == 'edit_name_player_2_menu':
+                        Window_now = 'edit_name_menu'
                     self.pressed = False
         else:
             self.dynamic_election = self.elevation
@@ -222,19 +245,16 @@ def draw_tittle():
 
 
 def start_game(button_game_name):
-    global player1, skin1, player2, skin2, rever, \
+    global skin1, skin2, rever, \
         fight_player_1, fight_player_2, health_1, health_2, health_background_1, health_background_2, \
         text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, \
         win_animation, text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, \
         text_player_1_y, text_player_2_x, text_player_2_y, clamp_player_1, clamp_player_2, players, \
         end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2
-    player1 = 'Player 1'
     skin2.revers()
     if button_game_name == 'play solo':
-        player2 = 'AI'
         players = 1
     else:
-        player2 = 'Player 2'
         players = 2
 
     end_x_left_player_1 = -250
@@ -287,6 +307,13 @@ def start_game(button_game_name):
 if __name__ == '__main__':
     pygame.init()
 
+    player1 = 'Player 1'
+    player2 = 'Player 2'
+
+    input_text_box = pygame.Rect(630, 470, 600, 100)
+
+    font_input_text = pygame.font.Font(None, 100)
+
     ninjas_sprites = pygame.sprite.Group()
     sprite = pygame.sprite.Sprite()
     sprite_background = pygame.sprite.Group()
@@ -336,11 +363,8 @@ if __name__ == '__main__':
     play_solo_button = Button('play solo', 600, 100, (630, 470), 7)
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
 
-    account_button = Button('edit name', 600, 100, (630, 470), 7)
+    edit_name_button = Button('edit name', 600, 100, (630, 470), 7)
     music_button = Button('music on', 600, 100, (630, 600), 7)
-
-    signin_button = Button('player 1', 600, 100, (630, 470), 7)
-    signup_button = Button('player 2', 600, 100, (630, 600), 7)
 
     player_1_button = Button('player 1', 600, 100, (630, 470), 7)
     player_2_button = Button('player 2', 600, 100, (630, 600), 7)
@@ -348,6 +372,8 @@ if __name__ == '__main__':
     player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
     player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
     player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
+
+    edit_button = Button('edit', 600, 100, (630, 600), 7)
 
     Window_now = 'main_menu'
 
@@ -363,6 +389,23 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if Window_now == 'edit_name_player_1_menu' or Window_now == 'edit_name_player_2_menu':
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if input_text_box.collidepoint(event.pos):
+                    active_input = not active_input
+                else:
+                    active_input = False
+                color_input_box = pygame.Color(200, 0, 0) if active_input else pygame.Color(139, 0, 0)
+            if event.type == pygame.KEYDOWN:
+                if active_input:
+                    if event.key == pygame.K_RETURN:
+                        print(text_input)
+                    elif event.key == pygame.K_BACKSPACE:
+                        text_input = text_input[:-1]
+                    else:
+                        if len(text_input) < 10:
+                            text_input += event.unicode
 
     screen.fill((0, 0, 0))
 
@@ -398,13 +441,27 @@ while running:
         back_button.draw()
 
     elif Window_now == 'settings_menu':
-        account_button.draw()
+        edit_name_button.draw()
         music_button.draw()
         back_button.draw()
 
-    elif Window_now == 'account_menu':
-        signin_button.draw()
-        signup_button.draw()
+    elif Window_now == 'edit_name_menu':
+        player_1_button.draw()
+        player_2_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'edit_name_player_1_menu':
+        txt_surface = font_input_text.render(text_input, True, color_input_box)
+        screen.blit(txt_surface, (input_text_box.x + 5, input_text_box.y + 20))
+        pygame.draw.rect(screen, color_input_box, input_text_box, 5)
+        edit_button.draw()
+        back_button.draw()
+
+    elif Window_now == 'edit_name_player_2_menu':
+        txt_surface = font_input_text.render(text_input, True, color_input_box)
+        screen.blit(txt_surface, (input_text_box.x + 5, input_text_box.y + 20))
+        pygame.draw.rect(screen, color_input_box, input_text_box, 5)
+        edit_button.draw()
         back_button.draw()
 
     elif Window_now == 'inventory_menu':
