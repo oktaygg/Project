@@ -19,6 +19,19 @@ def load_image(name, color_key=None):
     return image
 
 
+def update_config():
+    try:
+        with open('config.txt', 'w') as config_:
+            config_.write(player1 + '\n')
+            config_.write(player2 + '\n')
+            config_.write(str(skin_player_1) + '\n')
+            config_.write(str(skin_player_2) + '\n')
+            config_.write(str(Music))
+    except Exception:
+        print('config file error')
+        exit()
+
+
 class BackgroundSprite(pygame.sprite.Sprite):
     def __init__(self, x, y, pack_name, count):
         super().__init__(sprite_background)
@@ -93,6 +106,7 @@ class Button:
     def __init__(self, button_text, button_width, button_height, pos, elevation, color=(139, 0, 0)):
         self.button_text = button_text
         self.pressed = False
+        self.sound = False
         self.color = color
         self.elevation = elevation
         self.dynamic_election = elevation
@@ -123,10 +137,13 @@ class Button:
     def check_click(self):
         global Window_now, Music, music_button, skin1, skin2, \
             player_skin_1_button, player_skin_2_button, player_skin_3_button, \
-            color_input_box, active_input, text_input, player1, player2
+            color_input_box, active_input, text_input, player1, player2, skin_player_1, skin_player_2
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
+            if not self.sound:
+                button_sound.play()
+                self.sound = True
             if pygame.mouse.get_pressed()[0]:
                 self.dynamic_election = 0
                 self.pressed = True
@@ -150,10 +167,12 @@ class Button:
                     elif self.button_text == 'music on':
                         self.button_text = 'music off'
                         Music = False
+                        update_config()
                         music_button = Button('music off', 600, 100, (630, 600), 7)
                     elif self.button_text == 'music off':
                         music_button = Button('music on', 600, 100, (630, 600), 7)
                         Music = True
+                        update_config()
                     elif self.button_text == 'edit name':
                         Window_now = 'edit_name_menu'
                     elif self.button_text == 'back' and Window_now == 'edit_name_menu':
@@ -185,11 +204,15 @@ class Button:
                     elif self.button_text == 'back' and Window_now == 'player_2_inventory':
                         Window_now = 'inventory_menu'
                     elif (self.button_text == '1' or '2' or '3') and Window_now == 'player_1_inventory':
+                        skin_player_1 = int(self.button_text) - 1
+                        update_config()
                         skin1 = list_of_ninjas[int(self.button_text) - 1]
                         player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
                         player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
                         player_skin_3_button = Button('3', 190, 230, (1040, 470), 7)
                     elif (self.button_text == '1' or '2' or '3') and Window_now == 'player_2_inventory':
+                        skin_player_2 = int(self.button_text) - 1
+                        update_config()
                         skin2 = list_of_ninjas[int(self.button_text) - 1]
                         player_skin_1_button = Button('1', 190, 230, (630, 470), 7)
                         player_skin_2_button = Button('2', 190, 230, (835, 470), 7)
@@ -202,6 +225,7 @@ class Button:
                     elif self.button_text == 'edit' and Window_now == 'edit_name_player_1_menu':
                         if text_input != '':
                             player1 = text_input
+                            update_config()
                         active_input = False
                     elif self.button_text == 'back' and Window_now == 'edit_name_player_1_menu':
                         Window_now = 'edit_name_menu'
@@ -213,13 +237,17 @@ class Button:
                     elif self.button_text == 'edit' and Window_now == 'edit_name_player_2_menu':
                         if text_input != '':
                             player2 = text_input
+                            update_config()
                         active_input = False
                     elif self.button_text == 'back' and Window_now == 'edit_name_player_2_menu':
                         Window_now = 'edit_name_menu'
+                    button_sound_click.play()
                     self.pressed = False
         else:
             self.dynamic_election = self.elevation
             self.top_color = self.color
+            if self.sound:
+                self.sound = False
             if self.pressed and not (self.top_rect.collidepoint(mouse_pos)):
                 self.pressed = False
 
@@ -250,12 +278,18 @@ def start_game(button_game_name):
         text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, \
         win_animation, text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, \
         text_player_1_y, text_player_2_x, text_player_2_y, clamp_player_1, clamp_player_2, players, \
-        end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2
+        end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2, fight_music, sound_time
     skin2.revers()
     if button_game_name == 'play solo':
         players = 1
+        clamp_player_2 = True
     else:
         players = 2
+        clamp_player_2 = False
+
+    fight_music = True
+    background_sound.stop()
+    sound_time = 0
 
     end_x_left_player_1 = -250
     end_x_right_player_1 = 1180
@@ -264,7 +298,6 @@ def start_game(button_game_name):
     end_x_right_player_2 = 1180 + 290
 
     clamp_player_1 = False
-    clamp_player_2 = False
     rever = True
     fight_player_1 = False
     fight_player_2 = False
@@ -307,8 +340,27 @@ def start_game(button_game_name):
 if __name__ == '__main__':
     pygame.init()
 
-    player1 = 'Player 1'
-    player2 = 'Player 2'
+    try:
+        with open('config.txt', encoding='utf-8') as config:
+            lines = config.readlines()
+            player1 = lines[0][:len(lines[0]) - 1]
+            player2 = lines[1][:len(lines[0]) - 1]
+            skin_player_1 = int(lines[2][:len(lines[0]) - 1])
+            skin_player_2 = int(lines[3][:len(lines[0]) - 1])
+            Music = False if lines[4] == 'False' else True
+    except Exception:
+        print('config file error')
+        exit()
+
+    button_sound = pygame.mixer.Sound('button sound 1.mp3')
+    button_sound_click = pygame.mixer.Sound('button sound 2.mp3')
+    background_sound = pygame.mixer.Sound('fon sound.mp3')
+    background_fight_sound = pygame.mixer.Sound('fight fon sound.mp3')
+    death_sound = pygame.mixer.Sound('death sound.mp3')
+    katana_sound = pygame.mixer.Sound('katana sound.mp3')
+    damage_sound = pygame.mixer.Sound('uron sound.mp3')
+
+    sound_time = 0
 
     input_text_box = pygame.Rect(630, 470, 600, 100)
 
@@ -333,8 +385,8 @@ if __name__ == '__main__':
 
     list_of_ninjas = [white_ninja, heavy_ninja, ninja_ninja]
 
-    skin1 = list_of_ninjas[0]
-    skin2 = list_of_ninjas[1]
+    skin1 = list_of_ninjas[skin_player_1]
+    skin2 = list_of_ninjas[skin_player_2]
 
     text_moving = 1
     text_main_x = 600
@@ -364,7 +416,10 @@ if __name__ == '__main__':
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
 
     edit_name_button = Button('edit name', 600, 100, (630, 470), 7)
-    music_button = Button('music on', 600, 100, (630, 600), 7)
+    if Music:
+        music_button = Button('music on', 600, 100, (630, 600), 7)
+    else:
+        music_button = Button('music off', 600, 100, (630, 600), 7)
 
     player_1_button = Button('player 1', 600, 100, (630, 470), 7)
     player_2_button = Button('player 2', 600, 100, (630, 600), 7)
@@ -380,8 +435,6 @@ if __name__ == '__main__':
     time_update = 100
     time_escaped = 0
     GO = 10
-
-    Music = True
 
 while running:
     time = clock.tick()
@@ -409,15 +462,26 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    if Window_now == 'main_menu' or 'play_menu' or 'start_menu' or 'settings_menu' or 'account_menu' or 'win_menu':
-        time_escaped += time
+    sprite_background.draw(screen)
+    time_escaped += time
+    update_time = False
 
-        sprite_background.draw(screen)
+    if time_escaped >= time_update:
+        update_time = True
+        time_escaped = 0
+        sprite_background.update()
+
+    if Window_now != 'play_game':
         draw_tittle()
-
-        if time_escaped >= time_update:
+        if not Music:
+            background_sound.stop()
+            sound_time = 0
+        if update_time:
+            if sound_time == 0:
+                if Music:
+                    background_sound.play()
+            sound_time = (sound_time + 1) % 3620
             time_escaped = 0
-            sprite_background.update()
             if text_moving == 1:
                 text_main_y += 1
                 text_moving = 0 if text_main_y > 160 else 1
@@ -425,7 +489,236 @@ while running:
                 text_main_y -= 1
                 text_moving = 1 if text_main_y < 150 else 0
 
-    if Window_now == 'main_menu':
+    if Window_now == 'play_game':
+        if Music:
+            if fight_music:
+                fight_music = False
+                background_fight_sound.play()
+
+        skin2.draw(screen)
+        skin1.draw(screen)
+
+        pygame.draw.polygon(screen, (50, 0, 0), health_background_1)
+        pygame.draw.polygon(screen, (50, 0, 0), health_background_2)
+        pygame.draw.polygon(screen, (pygame.Color('red')), health_1)
+        pygame.draw.polygon(screen, (pygame.Color('red')), health_2)
+
+        shadow_text(text_player_1, text_player_1_shadow, text_player_1_x, text_player_1_y)
+        shadow_text(text_player_2, text_player_2_shadow, text_player_2_x, text_player_2_y)
+        shadow_text(text_time, text_time_shadow, text_time_x, text_time_y)
+
+        if update_time:
+            time_escaped = 0
+            if win == 1:
+                if skin2.cur_frame == 8:
+                    Window_now = 'win_menu'
+                    background_fight_sound.stop()
+            elif win == 2:
+                if skin1.cur_frame == 8:
+                    Window_now = 'win_menu'
+                    background_fight_sound.stop()
+            else:
+                time_ms += 1
+                if time_ms == 10:
+                    round_time -= 1
+                    if round_time == 0:
+                        Window_now = 'win_menu'
+                    elif round_time < 10:
+                        text_time_x = 940
+                    time_ms = 0
+                    text_time = font_text_time.render(str(round_time), True, (255, 0, 0))
+                    text_time_shadow = font_text_time.render(str(round_time), True, (0, 0, 0))
+
+            keys = pygame.key.get_pressed()
+
+            if win != 1 and players == 1:
+                if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or fight_player_2 or
+                        not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                    if not fight_player_2:
+                        skin2.cur_frame = -1
+                        skin2.animation_now = 5
+                        fight_player_2 = True
+                        clamp_player_2 = True
+                    if skin2.cur_frame == 4:
+                        katana_sound.play()
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                            health_1 = [health_1[0],
+                                        [health_1[1][0] - 127, health_1[1][1]],
+                                        [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
+                            damage_sound.play()
+                        if health_1[1] <= health_1[0]:
+                            health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+                            win = 2
+                            death_sound.play()
+                            if not win_animation:
+                                skin1.cur_frame = 0
+                                skin2.animation_now = 0
+                                skin1.animation_now = 4
+                                win_animation = True
+                    if skin1.cur_frame == 8:
+                        fight_player_2 = False
+                else:
+                    if win == -1:
+                        if clamp_player_2:
+                            skin1.cur_frame = -1
+                            skin2.animation_now = 1
+                            clamp_player_2 = False
+                        if rever:
+                            skin2.rect.x -= 15
+                        else:
+                            skin2.rect.x += 17
+
+            if win != 1 and players == 2:
+                if keys[pygame.K_KP1] or fight_player_2:
+                    if not fight_player_2:
+                        skin2.cur_frame = -1
+                        skin2.animation_now = 5
+                        fight_player_2 = True
+                    if skin2.cur_frame == 4:
+                        katana_sound.play()
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500 or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500):
+                            health_1 = [health_1[0],
+                                        [health_1[1][0] - 127, health_1[1][1]],
+                                        [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
+                            damage_sound.play()
+                        if health_1[1] <= health_1[0]:
+                            health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+                            win = 2
+                            death_sound.play()
+                            if not win_animation:
+                                skin1.cur_frame = 0
+                                skin1.animation_now = 4
+                                win_animation = True
+                    if skin2.cur_frame == 8:
+                        fight_player_2 = False
+                else:
+                    if (keys[pygame.K_LEFT] and skin2.rect.x > end_x_left_player_2 and keys[
+                        pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2 or
+                            keys[pygame.K_LEFT] and keys[pygame.K_KP2] and skin2.rect.x > end_x_left_player_2 and keys[
+                                pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2):
+                        skin2.animation_now = 0
+                        if clamp_player_2:
+                            skin2.cur_frame = -1
+                        clamp_player_2 = False
+                    elif keys[pygame.K_LEFT] and keys[pygame.K_KP2] and skin2.rect.x > end_x_left_player_2:
+                        if not clamp_player_2:
+                            skin2.cur_frame = -1
+                            clamp_player_2 = True
+                        skin2.animation_now = 2
+                        skin2.go(-25, 0)
+                    elif keys[pygame.K_RIGHT] and keys[pygame.K_KP2] and skin2.rect.x < end_x_right_player_2:
+                        if not clamp_player_2:
+                            skin2.cur_frame = -1
+                            clamp_player_2 = True
+                        skin2.animation_now = 2
+                        skin2.go(25, 0)
+                    elif keys[pygame.K_LEFT] and skin2.rect.x > end_x_left_player_2:
+                        if not clamp_player_2:
+                            skin2.cur_frame = -1
+                            clamp_player_2 = True
+                        skin2.animation_now = 1
+                        skin2.go(-10, 0)
+                    elif keys[pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2:
+                        if not clamp_player_2:
+                            skin2.cur_frame = -1
+                            clamp_player_2 = True
+                        skin2.animation_now = 1
+                        skin2.go(10, 0)
+                    else:
+                        if clamp_player_2:
+                            skin2.cur_frame = -1
+                        skin2.animation_now = 0
+                        clamp_player_2 = False
+
+            if win != 2:
+                if keys[pygame.K_h] or fight_player_1:
+                    if not fight_player_1:
+                        skin1.cur_frame = -1
+                        skin1.animation_now = 5
+                        fight_player_1 = True
+                    if skin1.cur_frame == 4:
+                        katana_sound.play()
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500 or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500):
+                            health_2 = [health_2[0],
+                                        [health_2[1][0] - 127, health_2[1][1]],
+                                        [health_2[2][0] - 127, health_2[2][1]], health_2[3]]
+                            damage_sound.play()
+                        if health_2[1] <= health_2[0]:
+                            health_2 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+                            win = 1
+                            death_sound.play()
+                            if not win_animation:
+                                skin2.cur_frame = 0
+                                skin2.animation_now = 4
+                                win_animation = True
+                    if skin1.cur_frame == 8:
+                        fight_player_1 = False
+                else:
+                    if (keys[pygame.K_a] and skin1.rect.x > end_x_left_player_1 and keys[
+                        pygame.K_d] and skin1.rect.x < end_x_right_player_1 or
+                            keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left_player_1 and keys[
+                                pygame.K_d] and skin1.rect.x < end_x_right_player_1):
+                        skin1.animation_now = 0
+                        if clamp_player_1:
+                            skin1.cur_frame = -1
+                        clamp_player_1 = False
+                    elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left_player_1:
+                        if not clamp_player_1:
+                            skin1.cur_frame = -1
+                            clamp_player_1 = True
+                        skin1.animation_now = 2
+                        skin1.go(-25, 0)
+                    elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right_player_1:
+                        if not clamp_player_1:
+                            skin1.cur_frame = -1
+                            clamp_player_1 = True
+                        skin1.animation_now = 2
+                        skin1.go(25, 0)
+                    elif keys[pygame.K_a] and skin1.rect.x > end_x_left_player_1:
+                        if not clamp_player_1:
+                            skin1.cur_frame = -1
+                            clamp_player_1 = True
+                        skin1.animation_now = 1
+                        skin1.go(-10, 0)
+                    elif keys[pygame.K_d] and skin1.rect.x < end_x_right_player_1:
+                        if not clamp_player_1:
+                            skin1.cur_frame = -1
+                            clamp_player_1 = True
+                        skin1.animation_now = 1
+                        skin1.go(10, 0)
+                    else:
+                        if clamp_player_1:
+                            skin1.cur_frame = -1
+                        skin1.animation_now = 0
+                        clamp_player_1 = False
+
+            skin1.update()
+            skin2.update()
+            if rever and skin1.rect.x > skin2.rect.x - 290:
+                rever = False
+                skin1.go(290, 0)
+                skin2.go(-290, 0)
+            elif not rever and skin2.rect.x > skin1.rect.x - 290:
+                rever = True
+                skin1.go(-290, 0)
+                skin2.go(290, 0)
+            if rever:
+                end_x_left_player_1 = -250
+                end_x_right_player_1 = 1180
+                end_x_left_player_2 = -250 + 290
+                end_x_right_player_2 = 1180 + 290
+                skin2.revers()
+            else:
+                skin1.revers()
+                end_x_left_player_1 = -250 + 290
+                end_x_right_player_1 = 1180 + 290
+                end_x_left_player_2 = -250
+                end_x_right_player_2 = 1180
+
+    elif Window_now == 'main_menu':
         play_button.draw()
         settings_button.draw()
         exit_button.draw()
@@ -514,223 +807,5 @@ while running:
         text_winner_x, text_winner_y = 630, 600
         shadow_text(text_winner, text_winner_shadow, text_winner_x, text_winner_y)
         back_button.draw()
-
-    elif Window_now == 'play_game':
-        time_escaped += time
-
-        sprite_background.draw(screen)
-
-        skin2.draw(screen)
-        skin1.draw(screen)
-
-        pygame.draw.polygon(screen, (50, 0, 0), health_background_1)
-        pygame.draw.polygon(screen, (50, 0, 0), health_background_2)
-        pygame.draw.polygon(screen, (pygame.Color('red')), health_1)
-        pygame.draw.polygon(screen, (pygame.Color('red')), health_2)
-
-        shadow_text(text_player_1, text_player_1_shadow, text_player_1_x, text_player_1_y)
-        shadow_text(text_player_2, text_player_2_shadow, text_player_2_x, text_player_2_y)
-        shadow_text(text_time, text_time_shadow, text_time_x, text_time_y)
-
-        if time_escaped >= time_update:
-            time_escaped = 0
-            if win == 1:
-                if skin2.cur_frame == 8:
-                    Window_now = 'win_menu'
-            elif win == 2:
-                if skin1.cur_frame == 8:
-                    Window_now = 'win_menu'
-            else:
-                time_ms += 1
-                if time_ms == 10:
-                    round_time -= 1
-                    if round_time == 0:
-                        Window_now = 'win_menu'
-                    elif round_time < 10:
-                        text_time_x = 940
-                    time_ms = 0
-                    text_time = font_text_time.render(str(round_time), True, (255, 0, 0))
-                    text_time_shadow = font_text_time.render(str(round_time), True, (0, 0, 0))
-
-            keys = pygame.key.get_pressed()
-
-            if win != 1 and players == 1:
-                if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or fight_player_2 or
-                        not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
-                    if not fight_player_2:
-                        skin2.cur_frame = -1
-                        skin2.animation_now = 5
-                        fight_player_2 = True
-                        clamp_player_2 = True
-                    if skin2.cur_frame == 4:
-                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or
-                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
-                            health_1 = [health_1[0],
-                                        [health_1[1][0] - 127, health_1[1][1]],
-                                        [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
-                        if health_1[1] <= health_1[0]:
-                            health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
-                            win = 2
-                            if not win_animation:
-                                skin1.cur_frame = 0
-                                skin2.animation_now = 0
-                                skin1.animation_now = 4
-                                win_animation = True
-                    if skin1.cur_frame == 8:
-                        fight_player_2 = False
-                else:
-                    if win == -1:
-                        if clamp_player_2:
-                            skin1.cur_frame = -1
-                            skin2.animation_now = 1
-                            clamp_player_2 = False
-                        if rever:
-                            skin2.rect.x -= 15
-                        else:
-                            skin2.rect.x += 17
-
-            if win != 1 and players == 2:
-                if keys[pygame.K_KP1] or fight_player_2:
-                    if not fight_player_2:
-                        skin2.cur_frame = -1
-                        skin2.animation_now = 5
-                        fight_player_2 = True
-                    if skin2.cur_frame == 4:
-                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500 or
-                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500):
-                            health_1 = [health_1[0],
-                                        [health_1[1][0] - 127, health_1[1][1]],
-                                        [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
-                        if health_1[1] <= health_1[0]:
-                            health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
-                            win = 2
-                            if not win_animation:
-                                skin1.cur_frame = 0
-                                skin1.animation_now = 4
-                                win_animation = True
-                    if skin2.cur_frame == 8:
-                        fight_player_2 = False
-                else:
-                    if (keys[pygame.K_LEFT] and skin2.rect.x > end_x_left_player_2 and keys[
-                        pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2 or
-                            keys[pygame.K_LEFT] and keys[pygame.K_KP2] and skin2.rect.x > end_x_left_player_2 and keys[
-                                pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2):
-                        skin2.animation_now = 0
-                        if clamp_player_2:
-                            skin2.cur_frame = -1
-                        clamp_player_2 = False
-                    elif keys[pygame.K_LEFT] and keys[pygame.K_KP2] and skin2.rect.x > end_x_left_player_2:
-                        if not clamp_player_2:
-                            skin2.cur_frame = -1
-                            clamp_player_2 = True
-                        skin2.animation_now = 2
-                        skin2.go(-25, 0)
-                    elif keys[pygame.K_RIGHT] and keys[pygame.K_KP2] and skin2.rect.x < end_x_right_player_2:
-                        if not clamp_player_2:
-                            skin2.cur_frame = -1
-                            clamp_player_2 = True
-                        skin2.animation_now = 2
-                        skin2.go(25, 0)
-                    elif keys[pygame.K_LEFT] and skin2.rect.x > end_x_left_player_2:
-                        if not clamp_player_2:
-                            skin2.cur_frame = -1
-                            clamp_player_2 = True
-                        skin2.animation_now = 1
-                        skin2.go(-10, 0)
-                    elif keys[pygame.K_RIGHT] and skin2.rect.x < end_x_right_player_2:
-                        if not clamp_player_2:
-                            skin2.cur_frame = -1
-                            clamp_player_2 = True
-                        skin2.animation_now = 1
-                        skin2.go(10, 0)
-                    else:
-                        if clamp_player_2:
-                            skin2.cur_frame = -1
-                        skin2.animation_now = 0
-                        clamp_player_2 = False
-
-            if win != 2:
-                if keys[pygame.K_h] or fight_player_1:
-                    if not fight_player_1:
-                        skin1.cur_frame = -1
-                        skin1.animation_now = 5
-                        fight_player_1 = True
-                    if skin1.cur_frame == 4:
-                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 500 or
-                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 500):
-                            health_2 = [health_2[0],
-                                        [health_2[1][0] - 127, health_2[1][1]],
-                                        [health_2[2][0] - 127, health_2[2][1]], health_2[3]]
-                        if health_2[1] <= health_2[0]:
-                            health_2 = [[0, 0], [0, 0], [0, 0], [0, 0]]
-                            win = 1
-                            if not win_animation:
-                                skin2.cur_frame = 0
-                                skin2.animation_now = 4
-                                win_animation = True
-                    if skin1.cur_frame == 8:
-                        fight_player_1 = False
-                else:
-                    if (keys[pygame.K_a] and skin1.rect.x > end_x_left_player_1 and keys[
-                        pygame.K_d] and skin1.rect.x < end_x_right_player_1 or
-                            keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left_player_1 and keys[
-                                pygame.K_d] and skin1.rect.x < end_x_right_player_1):
-                        skin1.animation_now = 0
-                        if clamp_player_1:
-                            skin1.cur_frame = -1
-                        clamp_player_1 = False
-                    elif keys[pygame.K_a] and keys[pygame.K_LSHIFT] and skin1.rect.x > end_x_left_player_1:
-                        if not clamp_player_1:
-                            skin1.cur_frame = -1
-                            clamp_player_1 = True
-                        skin1.animation_now = 2
-                        skin1.go(-25, 0)
-                    elif keys[pygame.K_d] and keys[pygame.K_LSHIFT] and skin1.rect.x < end_x_right_player_1:
-                        if not clamp_player_1:
-                            skin1.cur_frame = -1
-                            clamp_player_1 = True
-                        skin1.animation_now = 2
-                        skin1.go(25, 0)
-                    elif keys[pygame.K_a] and skin1.rect.x > end_x_left_player_1:
-                        if not clamp_player_1:
-                            skin1.cur_frame = -1
-                            clamp_player_1 = True
-                        skin1.animation_now = 1
-                        skin1.go(-10, 0)
-                    elif keys[pygame.K_d] and skin1.rect.x < end_x_right_player_1:
-                        if not clamp_player_1:
-                            skin1.cur_frame = -1
-                            clamp_player_1 = True
-                        skin1.animation_now = 1
-                        skin1.go(10, 0)
-                    else:
-                        if clamp_player_1:
-                            skin1.cur_frame = -1
-                        skin1.animation_now = 0
-                        clamp_player_1 = False
-
-            sprite_background.update()
-            skin1.update()
-            skin2.update()
-            if rever and skin1.rect.x > skin2.rect.x - 290:
-                rever = False
-                skin1.go(290, 0)
-                skin2.go(-290, 0)
-            elif not rever and skin2.rect.x > skin1.rect.x - 290:
-                rever = True
-                skin1.go(-290, 0)
-                skin2.go(290, 0)
-            if rever:
-                end_x_left_player_1 = -250
-                end_x_right_player_1 = 1180
-                end_x_left_player_2 = -250 + 290
-                end_x_right_player_2 = 1180 + 290
-                skin2.revers()
-            else:
-                skin1.revers()
-                end_x_left_player_1 = -250 + 290
-                end_x_right_player_1 = 1180 + 290
-                end_x_left_player_2 = -250
-                end_x_right_player_2 = 1180
 
     pygame.display.flip()
