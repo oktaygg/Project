@@ -22,14 +22,17 @@ def load_image(name, color_key=None):
 def update_config():
     try:
         with open('config.txt', 'w') as config_:
-            config_.write(player1 + '\n')
-            config_.write(player2 + '\n')
+            config_.write(player1.split()[0] + '\n')
+            config_.write(player2.split()[0] + '\n')
             config_.write(str(skin_player_1) + '\n')
             config_.write(str(skin_player_2) + '\n')
-            config_.write(str(Music))
+            config_.write(str(Music) + '\n')
+            config_.write(str(player1_win) + '\n')
+            config_.write(str(player2_win) + '\n')
+            config_.write(str(hard))
     except Exception:
         print('config file error')
-        exit()
+        sys.exit()
 
 
 class BackgroundSprite(pygame.sprite.Sprite):
@@ -136,8 +139,8 @@ class Button:
 
     def check_click(self):
         global Window_now, Music, music_button, skin1, skin2, \
-            player_skin_1_button, player_skin_2_button, player_skin_3_button, \
-            color_input_box, active_input, text_input, player1, player2, skin_player_1, skin_player_2
+            player_skin_1_button, player_skin_2_button, player_skin_3_button, edit_hard_button, \
+            color_input_box, active_input, text_input, player1, player2, skin_player_1, skin_player_2, hard
         mouse_pos = pygame.mouse.get_pos()
         if self.top_rect.collidepoint(mouse_pos):
             self.top_color = (200, 0, 0)
@@ -151,7 +154,7 @@ class Button:
                 self.dynamic_election = self.elevation
                 if self.pressed:
                     if self.button_text == 'exit':
-                        exit()
+                        sys.exit()
                     elif self.button_text == 'play':
                         Window_now = 'play_menu'
                     elif self.button_text == 'back' and Window_now == 'play_menu':
@@ -241,6 +244,15 @@ class Button:
                         active_input = False
                     elif self.button_text == 'back' and Window_now == 'edit_name_player_2_menu':
                         Window_now = 'edit_name_menu'
+                    elif self.button_text == 'easy' or self.button_text == 'medium' or self.button_text == 'hard':
+                        if self.button_text == 'easy':
+                            hard = 'medium'
+                        elif self.button_text == 'medium':
+                            hard = 'hard'
+                        elif self.button_text == 'hard':
+                            hard = 'easy'
+                        update_config()
+                        edit_hard_button = Button(hard, 600, 100, (630, 340), 7)
                     button_sound_click.play()
                     self.pressed = False
         else:
@@ -274,8 +286,8 @@ def draw_tittle():
 
 def start_game(button_game_name):
     global skin1, skin2, rever, \
-        fight_player_1, fight_player_2, health_1, health_2, health_background_1, health_background_2, \
-        text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, \
+        fight_player_1, fight_player_2, health_1, health_2, health_background_1, health_background_2, bot_speed, \
+        text_time_shadow, text_time, font_text_time, round_time, time_ms, text_time_x, text_time_y, win, bot_attack, \
         win_animation, text_player_1_shadow, text_player_1, text_player_2_shadow, text_player_2, text_player_1_x, \
         text_player_1_y, text_player_2_x, text_player_2_y, clamp_player_1, clamp_player_2, players, \
         end_x_left_player_1, end_x_right_player_1, end_x_left_player_2, end_x_right_player_2, fight_music, sound_time
@@ -286,6 +298,16 @@ def start_game(button_game_name):
     else:
         players = 2
         clamp_player_2 = False
+
+    if hard == 'easy':
+        bot_speed = 21
+        bot_attack = 450
+    elif hard == 'medium':
+        bot_speed = 21
+        bot_attack = 450
+    elif hard == 'hard':
+        bot_speed = 25
+        bot_attack = 500
 
     fight_music = True
     background_sound.stop()
@@ -341,16 +363,19 @@ if __name__ == '__main__':
     pygame.init()
 
     try:
-        with open('config.txt', encoding='utf-8') as config:
+        with open('config.txt', 'r') as config:
             lines = config.readlines()
-            player1 = lines[0][:len(lines[0]) - 1]
-            player2 = lines[1][:len(lines[0]) - 1]
+            player1 = lines[0].split()[0]
+            player2 = lines[1].split()[0]
             skin_player_1 = int(lines[2][:len(lines[0]) - 1])
             skin_player_2 = int(lines[3][:len(lines[0]) - 1])
-            Music = False if lines[4] == 'False' else True
+            Music = False if lines[4].split()[0] == 'False' else True
+            player1_win = lines[5].split()[0]
+            player2_win = lines[6].split()[0]
+            hard = lines[7]
     except Exception:
         print('config file error')
-        exit()
+        sys.exit()
 
     button_sound = pygame.mixer.Sound('button sound 1.mp3')
     button_sound_click = pygame.mixer.Sound('button sound 2.mp3')
@@ -415,6 +440,7 @@ if __name__ == '__main__':
     play_solo_button = Button('play solo', 600, 100, (630, 470), 7)
     play_duo_button = Button('play duo', 600, 100, (630, 600), 7)
 
+    edit_hard_button = Button(hard, 600, 100, (630, 340), 7)
     edit_name_button = Button('edit name', 600, 100, (630, 470), 7)
     if Music:
         music_button = Button('music on', 600, 100, (630, 600), 7)
@@ -452,9 +478,7 @@ while running:
                 color_input_box = pygame.Color(200, 0, 0) if active_input else pygame.Color(139, 0, 0)
             if event.type == pygame.KEYDOWN:
                 if active_input:
-                    if event.key == pygame.K_RETURN:
-                        print(text_input)
-                    elif event.key == pygame.K_BACKSPACE:
+                    if event.key == pygame.K_BACKSPACE:
                         text_input = text_input[:-1]
                     else:
                         if len(text_input) < 10:
@@ -532,8 +556,8 @@ while running:
             keys = pygame.key.get_pressed()
 
             if win != 1 and players == 1:
-                if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or fight_player_2 or
-                        not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + bot_attack or fight_player_2 or
+                        not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + bot_attack):
                     if not fight_player_2:
                         skin2.cur_frame = -1
                         skin2.animation_now = 5
@@ -541,8 +565,8 @@ while running:
                         clamp_player_2 = True
                     if skin2.cur_frame == 4:
                         katana_sound.play()
-                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + 400 or
-                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + 400):
+                        if (rever and skin1.rect.x < skin2.rect.x <= skin1.rect.x + bot_attack or
+                                not rever and skin2.rect.x < skin1.rect.x <= skin2.rect.x + bot_attack):
                             health_1 = [health_1[0],
                                         [health_1[1][0] - 127, health_1[1][1]],
                                         [health_1[2][0] - 127, health_1[2][1]], health_1[3]]
@@ -551,6 +575,8 @@ while running:
                             health_1 = [[0, 0], [0, 0], [0, 0], [0, 0]]
                             win = 2
                             death_sound.play()
+                            player2_win = str(int(player2_win) + 1)
+                            update_config()
                             if not win_animation:
                                 skin1.cur_frame = 0
                                 skin2.animation_now = 0
@@ -562,12 +588,12 @@ while running:
                     if win == -1:
                         if clamp_player_2:
                             skin1.cur_frame = -1
-                            skin2.animation_now = 1
+                            skin2.animation_now = 2
                             clamp_player_2 = False
                         if rever:
-                            skin2.rect.x -= 15
+                            skin2.rect.x -= bot_speed
                         else:
-                            skin2.rect.x += 17
+                            skin2.rect.x += bot_speed
 
             if win != 1 and players == 2:
                 if keys[pygame.K_KP1] or fight_player_2:
@@ -650,6 +676,8 @@ while running:
                             health_2 = [[0, 0], [0, 0], [0, 0], [0, 0]]
                             win = 1
                             death_sound.play()
+                            player1_win = str(int(player1_win) + 1)
+                            update_config()
                             if not win_animation:
                                 skin2.cur_frame = 0
                                 skin2.animation_now = 4
@@ -734,6 +762,7 @@ while running:
         back_button.draw()
 
     elif Window_now == 'settings_menu':
+        edit_hard_button.draw()
         edit_name_button.draw()
         music_button.draw()
         back_button.draw()
@@ -798,14 +827,20 @@ while running:
         back_button.draw()
 
     elif Window_now == 'win_menu':
-        winner_name = player1 + ' win!' if win == 1 else player2 + ' win!'
+        winner_name = f"{player1} win!" if win == 1 else f"{player2} win!"
+        winner_stat = f"{player1} - {player1_win} wins" if win == 1 else f"{player2} - {player2_win} wins"
         if win == -1:
             winner_name = 'draw'
+            winner_stat = player1_win + ' ' + player2_win
         font_winner_text = pygame.font.Font(None, 150)
         text_winner = font_winner_text.render(winner_name, True, (200, 0, 0))
         text_winner_shadow = font_winner_text.render(winner_name, True, (0, 0, 0))
-        text_winner_x, text_winner_y = 630, 600
+        text_winner_stat = font_winner_text.render(winner_stat, True, (200, 0, 0))
+        text_winner_stat_shadow = font_winner_text.render(winner_stat, True, (0, 0, 0))
+        text_winner_x, text_winner_y = 630, 500
+        text_winner_stat_x, text_winner_stat_y = 630, 600
         shadow_text(text_winner, text_winner_shadow, text_winner_x, text_winner_y)
+        shadow_text(text_winner_stat, text_winner_stat_shadow, text_winner_stat_x, text_winner_stat_y)
         back_button.draw()
 
     pygame.display.flip()
