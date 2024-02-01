@@ -3,6 +3,6 @@ player2
 0
 2
 True
-6
-5
-hard
+0
+0
+easy
