@@ -1,5 +1,8 @@
-player 1
-player 2
+player1
+player2
 0
 2
 True
+6
+5
+hard
