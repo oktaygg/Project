@@ -372,7 +372,7 @@ if __name__ == '__main__':
             Music = False if lines[4].split()[0] == 'False' else True
             player1_win = lines[5].split()[0]
             player2_win = lines[6].split()[0]
-            hard = lines[7]
+            hard = lines[7].strip()
     except Exception:
         print('config file error')
         sys.exit()
